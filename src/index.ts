@@ -4,17 +4,15 @@
 
 import {MathJaxReady} from "rp-mathjax";
 
-import {useCallback, useEffect, useMemo, useRef} from "react";
+import {useCallback, useEffect, useRef} from "react";
 import {Utils, usePlayer, useTimeUpdate} from "ractive-player";
 const {animate} = Utils.animation;
+
+import type {MJX} from "rp-mathjax";
 
 interface Opts extends Omit<Parameters<typeof animate>[0], "startTime"> {
   startTime: number | string;
 }
-
-import type {Playback} from "ractive-player";
-
-import type {MJX} from "rp-mathjax";
 
 interface Coords {
   x1: number;
@@ -28,26 +26,26 @@ interface Options {
   tail: string;
   label?: string;
   ref: React.MutableRefObject<MJX>;
-  headFn: any;
-  tailFn: any;
-  labelFn: any;
+  headFn: (t: number) => void;
+  tailFn: (t: number) => void;
+  labelFn: (t: number) => void;
 }
 
-export function lerp(a: number, b: number, t: number) {
+export function lerp(a: number, b: number, t: number): number {
   return a + t * (b - a);
 }
 
-export function a$opacity(u: number, nodes: SVGElement[]) {
+export function a$opacity(u: number, nodes: SVGElement[]): void {
   for (const node of nodes) {
     node.style.opacity = u.toString();
   }
 }
 
-export function useAnimateArrows(o: Options, deps?: React.DependencyList) {
+export function useAnimateArrows(o: Options, deps?: React.DependencyList): void {
   const {playback} = usePlayer();
   const tail = useRef<SVGLineElement>();
-  const head = useRef<SVGPathElement[]>([]);
-  const label = useRef<SVGElement[]>([]);
+  // const head = useRef<SVGPathElement[]>([]);
+  // const label = useRef<SVGElement[]>([]);
   const init = useRef<Coords>({});
 
   /* fading functions */
@@ -131,7 +129,7 @@ interface UseMathAnimationOptions {
   cb: (u: number, nodes: SVGElement[]) => void;
 }
 
-export function useMathAnimation(o: UseMathAnimationOptions, deps?: React.DependencyList) {
+export function useMathAnimation(o: UseMathAnimationOptions, deps?: React.DependencyList): void {
   const {playback} = usePlayer();
   const prev = useRef<number>();
   const nodes = useRef<SVGElement[]>([]);
@@ -173,7 +171,7 @@ export function useMathAnimation(o: UseMathAnimationOptions, deps?: React.Depend
 /*
   These are probably supposed to be in ractive-player's Utils.animation.
 */
-export function useAnimation(opts: Opts, cb: (t: number) => void) {
+export function useAnimation(opts: Opts, cb: (t: number) => void): void {
   const {script} = usePlayer();
   opts.startTime = script.parseStart(opts.startTime) as number;
 
@@ -185,7 +183,7 @@ export function useAnimation(opts: Opts, cb: (t: number) => void) {
   });
 }
 
-export function useLazy(anim: (t: number) => number, cb: (t: number) => void, deps?: React.DependencyList) {
+export function useLazy(anim: (t: number) => number, cb: (t: number) => void, deps?: React.DependencyList): void {
   const prev = useRef<number>();
 
   useTimeUpdate(t => {
@@ -197,14 +195,14 @@ export function useLazy(anim: (t: number) => number, cb: (t: number) => void, de
   }, deps);
 }
 
-export function extendXY() {
+export function extendXY(): void {
   MathJaxReady.then(MathJax => {
     MathJax.Hub.Register.StartupHook("Device-Independent Xy-pic Ready", function () {
       const { xypic } = MathJax.Extension, { AST, memoize } = xypic;
       
       // color
       AST.Modifier.Shape.SetColor = AST.Modifier.Subclass({
-        preprocess(context, reversedProcessedModifiers) { },
+        preprocess() { },
         modifyShape(context, objectShape, restModifiers, color) {
           objectShape = this.proceedModifyShape(context, objectShape, restModifiers);
           return xypic.Shape.ChangeColorShape(xyDecodeColor(color), objectShape);
@@ -215,7 +213,7 @@ export function extendXY() {
       // data
       xypic.Graphics.SVG.Augment({
         createChangeDataGroup: function(data) {
-          return xypic.Graphics.SVG.ChangeDataGroup(this, data)
+          return xypic.Graphics.SVG.ChangeDataGroup(this, data);
         }
       });
 
@@ -256,7 +254,7 @@ export function extendXY() {
       });
 
       AST.Modifier.Shape.SetData = AST.Modifier.Subclass({
-        preprocess(context, reversedProcessedModifiers) {},
+        preprocess() {},
         modifyShape(context, objectShape, restModifiers, data) {
           objectShape = this.proceedModifyShape(context, objectShape, restModifiers);
           return xypic.Shape.ChangeDataShape(data, objectShape);
@@ -295,23 +293,23 @@ export function extendXY() {
 }
 
 const MAP = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
-const to_b58 = function(B,A){let d=[],s="",i,j,c,n;for(i in B){j=0,c=B[i];s+=c||s.length^i?"":1;while(j in d||c){n=d[j];n=n?n*256+c:c;c=n/A.length|0;d[j]=n%A.length;j++}}while(j--)s+=A[d[j]];return s};
-const from_b58 = function(S,A){let d=[],b=[],i,j,c,n;for(i in S){j=0,c=A.indexOf(S[i]);if(c<0)return undefined;c||b.length^i?i:b.push(0);while(j in d||c){n=d[j];n=n?n*A.length+c:c;c=n>>8;d[j]=n%256;j++}}while(j--)b.push(d[j]);return new Uint8Array(b)};
+const to_b58 = function(B,A){let d=[],s="",i,j,c,n;for(i in B){j=0,c=B[i];s+=c||s.length^i?"":1;while(j in d||c){n=d[j];n=n?n*256+c:c;c=n/A.length|0;d[j]=n%A.length;j++;}}while(j--)s+=A[d[j]];return s;};
+const from_b58 = function(S,A){let d=[],b=[],i,j,c,n;for(i in S){j=0,c=A.indexOf(S[i]);if(c<0)return undefined;c||b.length^i?i:b.push(0);while(j in d||c){n=d[j];n=n?n*A.length+c:c;c=n>>8;d[j]=n%256;j++;}}while(j--)b.push(d[j]);return new Uint8Array(b);};
 
-export function xyEncodeColor(color: string) {
+export function xyEncodeColor(color: string): string {
   return color.toUpperCase().replace(/[#0-9]/g, (char) => {
-    if (char === '#')
-      return '';
-    return String.fromCharCode('G'.charCodeAt(0) + parseInt(char));
+    if (char === "#")
+      return "";
+    return String.fromCharCode("G".charCodeAt(0) + parseInt(char));
   });
 }
-export function xyDecodeColor(color: string) {
-  return '#' + color.replace(/[G-P]/g, (digit) => {
-    return (digit.charCodeAt(0) - 'G'.charCodeAt(0)).toString();
+export function xyDecodeColor(color: string): string {
+  return "#" + color.replace(/[G-P]/g, (digit) => {
+    return (digit.charCodeAt(0) - "G".charCodeAt(0)).toString();
   });
 }
 
-export function tob52(str: string) {
+export function tob52(str: string): string {
   const arr = [];
   for (let i = 0; i < str.length; ++i) {
     arr[i] = str.charCodeAt(i);
@@ -319,7 +317,7 @@ export function tob52(str: string) {
   return to_b58(new Uint8Array(arr), MAP);
 }
 
-export function fromb52(str: string) {
+export function fromb52(str: string): string {
   const arr = from_b58(str, MAP);
   let ret = "";
   for (let i = 0; i < arr.length; ++i) {

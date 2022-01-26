@@ -1,5 +1,3 @@
 .DS_Store
 node_modules
-
-rp-xyjax.js
-*.js.LICENSE.txt
+dist
